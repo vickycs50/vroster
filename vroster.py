@@ -9,31 +9,22 @@ from vision.matlab.interface import *
 from vision.ui.CVInterface import *
 from vision.ai.trivial import *
 
-# UI settings
-ui = CVWindow('VRoster')
-	
-# Video settings
-videoID = 2
-videoPath = '/Users/andre/Desktop/videoroster/%03d.mov'%videoID
+import config
 
-# Photo settings
-photoPath = '/Users/andre/Desktop/videoroster/photos2/'
-
-# Detector settings
-cascadePath = 'data/opencv-24x24.xml'
-cascadeSize = (12,12)
-
-# Recognition
-boundSize = (24, 24)
+# Setup UI
+if config.EnableUI == True:
+	ui = CVWindow('VRoster')
+else:
+	ui = None
 
 # Matlab
-matlab = LocalMatlab(10, '/Applications/MATLAB_R2010b.app/', 'maci64')
+matlab = LocalMatlab(config.MatlabVersion, config.MatlabPath, config.MatlabArch)
 matlab.addpath('matlab/')
-matlab.execExpression('addpath(genpath(\'matlab/yalmip\'))', verbose=True)
+matlab.execExpression('addpath(genpath(\'matlab/yalmip\'))')
 
 # Components
-video = CVVideo.CVFileVideo(videoPath)
-detector = HaarDetector(cascadePath, cascadeSize)
+video = CVVideo.CVFileVideo(config.TrialMovie)
+detector = HaarDetector(config.HaarCascade, config.HaarSize)
 tracker = TrivialTracker()
 ai = dict()
 
@@ -41,7 +32,7 @@ ai = dict()
 recognizers = []
 for i in range(0, 8):
 	recognizers.append(LBPRecognizer(matlab))
-recognizers = BagRecognizer(photoPath, recognizers, boundSize)
+recognizers = BagRecognizer(config.PhotoPath, recognizers, config.BoundingBox)
 
 while True:
 	frame = video.next()
@@ -52,7 +43,7 @@ while True:
 	# Get objects
 	observations = detector.detect(frameGray)
 	objects = tracker.update(observations)
-	objectImages = Image.extractSubImages(frameGray, objects, boundSize)
+	objectImages = Image.extractSubImages(frameGray, objects, config.BoundingBox)
 	
 	# Generate recognition matrix
 	recognized = []
@@ -61,19 +52,15 @@ while True:
 
 	# Attempt to find best matching
 	w = numpy.matrix(recognized)
-	res = matlab.vroster_ipo(w, 2, verbose=True)
+	res = matlab.vroster_ipo(w, 2)
 	labels = numpy.matrix(res[0])
 	
+	# Extract labels for each object
 	predicted = []
 	for i in range(0, labels.shape[0]):
-		if i not in ai:
-			#ai[i] = MultinomialAI(range(0,9))
-			ai[i] = TrivialAI()
-		ai[i].update(numpy.argmax(labels[i,:]))
-		predicted.append(ai[i].predict())
+		predicted.append(numpy.argmax(labels[i,:]))
 			
-	
-	
+
 	if ui != None:
 		canvas = CVCanvas(frame)
 		
@@ -87,6 +74,7 @@ while True:
 		
 		cv.ShowImage('VRoster', frame)	
 		ui.update(canvas)
-	
+
+		
 	#if cv.WaitKey(1)!=-1:
 	#	break
