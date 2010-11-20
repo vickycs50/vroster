@@ -1,5 +1,6 @@
 import pickle
 
+import config
 from vision.util import CVVideo, Image
 from vision.detector import *
 from vision.tracker import *
@@ -8,8 +9,6 @@ from vision.recognizer.BagRecognizer import *
 from vision.matlab.interface import *
 from vision.ui.CVInterface import *
 from vision.ai.trivial import *
-
-import config
 
 # Setup UI
 if config.EnableUI == True:
@@ -75,6 +74,3 @@ while True:
 		cv.ShowImage('VRoster', frame)	
 		ui.update(canvas)
 
-		
-	#if cv.WaitKey(1)!=-1:
-	#	break
