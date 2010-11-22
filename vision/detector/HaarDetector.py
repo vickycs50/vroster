@@ -4,6 +4,7 @@ from BaseDetector import *
 
 
 class HaarDetector(BaseDetector):
+	"""OpenCV Haar detector implementation"""
 	
 	def __init__(self, cascade, size):
 		self.cascade = cv.Load(cascade)

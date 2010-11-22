@@ -6,17 +6,17 @@
 # Trial settings
 # --------------------------------------------------------------------
 # Path for movie to use
-TrialMovie = '/Users/andre/Desktop/videoroster/002.mov'
+TrialMovie = 'test-data/clips/002.mov'
 # Path of where pictures are located
 # - Each person has a subdirectory with images inside, a recognizer is
 #   made for each sub folder and loads all images inside that folder
-PhotoPath = '/Users/andre/Desktop/videoroster/photos2/'
+PhotoPath = ['test-data/photos-class/']
 
 # --------------------------------------------------------------------
 # VRoster parameters
 # --------------------------------------------------------------------
 # True - Displays progress with a window
-EnableUI = False
+EnableUI = True
 # Recognized faces are resized to a fixed size
 BoundingBox = (24, 24)
 

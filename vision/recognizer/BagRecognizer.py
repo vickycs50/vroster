@@ -10,26 +10,32 @@ class BagRecognizer(BaseRecognizer):
 	def __init__(self, directory, classifiers, size):
 		self.classifiers = classifiers
 		
-		directories = os.listdir(directory)
-		
+		if getattr(directory, '__iter__', False) == False:
+			directory = (directory, )
+
 		cid = 0
 		
-		for d in directories:
-			if d[0]!='.':
+		for currentDir in directory:
+			directories = os.listdir(currentDir)
+		
+			for d in directories:
+				if d[0]!='.':
 				
-				print 'Loading:',d 
-				files = os.listdir(directory+'/'+d)
+					print 'Loading recognizer:',d 
+					files = os.listdir(currentDir+'/'+d)
 				
-				for file in files:
-					if file[0] != '.':
-						image = cv.LoadImage(directory+'/'+d+'/'+file, cv.CV_LOAD_IMAGE_GRAYSCALE)
-						image2 = cv.CreateImage(size, image.depth, 1)
-						cv.Resize(image, image2)
-						x = Image.cv2array(image2)/255.0
+					if cid < len(self.classifiers):
+						for file in files:
+							if file[0] != '.':
+								image = cv.LoadImage(currentDir+'/'+d+'/'+file, cv.CV_LOAD_IMAGE_GRAYSCALE)
+								image2 = cv.CreateImage(size, image.depth, 1)
+								cv.Resize(image, image2)
+								x = Image.cv2array(image2)/255.0
 						
-						self.classifiers[cid].update(x)
-			
-				cid += 1
+								self.classifiers[cid].update(x)
+					else:
+						print 'Skipping..'
+					cid += 1
 
 	def query(self, image):
 		res = []

@@ -29,7 +29,7 @@ ai = dict()
 
 # Recognizer 
 recognizers = []
-for i in range(0, 8):
+for i in range(0, 8+5):
 	recognizers.append(LBPRecognizer(matlab))
 recognizers = BagRecognizer(config.PhotoPath, recognizers, config.BoundingBox)
 
@@ -51,14 +51,18 @@ while True:
 
 	# Attempt to find best matching
 	w = numpy.matrix(recognized)
+	print w
 	res = matlab.vroster_ipo(w, 2)
+	print res
+	sys.exit(0)
 	labels = numpy.matrix(res[0])
 	
 	# Extract labels for each object
 	predicted = []
 	for i in range(0, labels.shape[0]):
 		predicted.append(numpy.argmax(labels[i,:]))
-			
+	
+	print predicted		
 
 	if ui != None:
 		canvas = CVCanvas(frame)
