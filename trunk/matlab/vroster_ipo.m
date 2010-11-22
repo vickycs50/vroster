@@ -10,7 +10,7 @@ W2 = [W2 ones(size(W2,1), 1)*mean(mean(W))];
 
 [d r] = size(W2);
 A = reshape(W2', 1, d*r);
-x = binvar(d*r, 1, 'full');
+x = intvar(d*r, 1, 'full');
 
 objective = [];
 
@@ -21,20 +21,16 @@ for i=1:d
 	objective = [objective obj*x==1];
 end
 % A recognizer can be used once or never
-% |  1  *|
-% |..1..*|
-% |  1  *|
 for i=1:r-1
 	obj = zeros(1, d*r);
 	obj(i:r:d*r) = 1;
 	objective = [objective obj*x==1];
 end
 
-%objective = [objective log(sum(min(W,[],2)))<log(A*x)];
-%objective = [objective sum(x((r-1)*d:r*d))==abs(d-r)];
 constraint = (A*x);
 
-solvesdp(objective, constraint, sdpsettings('verbose', 0, 'showprogress', 0, 'solver', 'bnb'));
+solver_name = 'bnb';
+solvesdp(objective, constraint, sdpsettings('verbose', 1, 'showprogress', 1, 'solver', solver_name));
 
 config = reshape(double(x)', r, d)';
 config = config(1:id, :);
