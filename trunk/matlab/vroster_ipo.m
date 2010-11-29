@@ -10,7 +10,7 @@ W2 = [W2 ones(size(W2,1), 1)*mean(mean(W))];
 
 [d r] = size(W2);
 A = reshape(W2', 1, d*r);
-x = intvar(d*r, 1, 'full');
+x = binvar(d*r, 1, 'full');
 
 objective = [];
 
