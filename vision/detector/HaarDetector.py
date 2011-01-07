@@ -64,8 +64,7 @@ class SkinHaarDetector(HaarDetector):
 		self.resA = None
 		self.resB = None
 		self.resC = None
-		
-		cv.NamedWindow('Skin', 0)
+
 	
 	def __getObjects(self, seq):
 		res = []
@@ -110,15 +109,11 @@ class SkinHaarDetector(HaarDetector):
 		storage = cv.CreateMemStorage()
 		contour = cv.CloneImage(res)
 		objects = cv.FindContours(contour, storage, cv.CV_RETR_TREE, cv.CV_CHAIN_APPROX_SIMPLE)
-		
-		cv.ShowImage('Skin', res)
-		
 		objects = self.__getObjects(objects)
 
 		detected = []
 		for obj in objects:
 			if obj[2]>self.skin['MinSize'] and obj[3]>self.skin['MinSize']:
-				print obj
 				cv.ResetImageROI(image)
 				cv.SetImageROI(image, obj)
 				found = HaarDetector.detect(self, image)
