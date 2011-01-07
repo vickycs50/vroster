@@ -20,14 +20,9 @@ ui = None
 if config.EnableUI == True:
 	ui = CVWindow('VRoster')
 
-# Matlab
-#matlab = LocalMatlab(config.MatlabVersion, config.MatlabPath, config.MatlabArch)
-#matlab.addpath('matlab/')
-#matlab.execExpression('addpath(genpath(\'matlab/yalmip\'))')
-
 # Components
 video = CVVideo.CVFileVideo(config.TrialMovie)
-detector = FastHaarDetector(config.HaarCascade, config.HaarSize)
+detector = SkinHaarDetector(config.HaarCascade, config.HaarSize, config.HaarSkin)
 tracker = TrivialTracker()
 ai = GapApproximation()
 profile = Profile()
@@ -40,18 +35,20 @@ recognizers = BagRecognizer(config.PhotoPath, recognizers, config.BoundingBox)
 
 try:
 	#while True:
-	for i in range(0,40):
+	for i in range(0,250):
 		profile.start('FPS')
 		
 		frame = video.next()
 		if frame==None:
 			print 'Movie ended!'
 			break
-		frameGray = Image.toGray(frame)
+		
+		frameGray = cv.CreateImage(cv.GetSize(frame), cv.IPL_DEPTH_8U, 1)
+		cv.CvtColor(frame, frameGray, cv.CV_RGB2GRAY)
 	
 		# Get objects
 		profile.start('Haar')
-		observations = detector.detect(frameGray)
+		observations = detector.detect(frame)
 		profile.end('Haar')
 		objects = tracker.update(observations)
 		
@@ -66,29 +63,32 @@ try:
 		
 		# Attempt to find best matching
 		w = numpy.matrix(recognized)
-		print numpy.cast[int](w)
 		profile.start('IP')
 		predicted = ai.predict(w)
 		profile.end('IP')
 	
-		
-		print predicted
-
 		if ui != None:
 			canvas = CVCanvas(frame)
 
-			for i in range(len(objects)):
-				label = predicted[i]
-				conf = 0
+			if len(predicted)>0:
+				
+				avgDist = []
+				print predicted
+				for i in range(0,len(predicted)):
+					if predicted[i]>0:
+						avgDist.append(w[i, predicted[i]])
+				avgDist = numpy.average(avgDist)
+				
+				for i in range(len(objects)):
+					label = predicted[i]
+					conf = avgDist/w[i, label]
 						
-				canvas.drawText('%d ~ %.02f'%(label, conf), (objects[i][0], objects[i][1]-3), (255, 255, 0))
-				canvas.drawRect(objects[i], (255,0,0))
+					canvas.drawText('%d ~ %.02f'%(label, conf), (objects[i][0], objects[i][1]-3), (255, 255, 0))
+					canvas.drawRect(objects[i], (255,0,0))
 			
-		
-			cv.ShowImage('VRoster', frame)	
 			ui.update(canvas)
 			
-			cv.WaitKey(-1)
+			#cv.WaitKey(-1)
 		profile.end('FPS')
 except KeyboardInterrupt:
 	print ''

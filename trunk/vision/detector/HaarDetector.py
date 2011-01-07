@@ -12,6 +12,7 @@ class HaarDetector(BaseDetector):
 		
 	def detect(self, image):
 		haarResults = cv.HaarDetectObjects(image, self.cascade, cv.CreateMemStorage(0), 1.2, 1, cv.CV_HAAR_DO_CANNY_PRUNING, self.size)
+
 		res = []
 		for r in haarResults:
 			a = list(r[0])
@@ -25,7 +26,7 @@ class HaarDetector(BaseDetector):
 		
 class FastHaarDetector(HaarDetector):
 	
-	def __init__(self, cascade, size, mod=[2, 2]):
+	def __init__(self, cascade, size, mod=[2,2]):
 		HaarDetector.__init__(self, cascade, size)
 		self.mod = mod
 		self.ind = [0, 0]
@@ -45,8 +46,86 @@ class FastHaarDetector(HaarDetector):
 			
 		img = cv.GetSubRect(image, currSlice)
 		res = HaarDetector.detect(self, img)
-
+		
 		for i in range(0, len(res)):
 			res[i] = [res[i][0]+currSlice[0], res[i][1]+currSlice[1], res[i][2], res[i][3]]
 			
 		return res
+		
+class SkinHaarDetector(HaarDetector):
+	
+	def __init__(self, cascade, size, skin):
+		HaarDetector.__init__(self, cascade, size)
+		self.skin = skin
+		
+		self.h = None
+		self.s = None
+		self.v = None
+		self.resA = None
+		self.resB = None
+		self.resC = None
+		
+		cv.NamedWindow('Skin', 0)
+	
+	def __getObjects(self, seq):
+		res = []
+		while seq:
+			res.append(cv.BoundingRect(list(seq)))
+			res.extend(self.__getObjects(seq.v_next()))
+			seq = seq.h_next()
+		return res
+		
+	def detect(self, image):
+		size = cv.GetSize(image)
+		hsv = cv.CloneImage(image)
+		
+		if self.h == None:
+			self.h = cv.CreateImage(size, cv.IPL_DEPTH_8U, 1)
+			self.s = cv.CreateImage(size, cv.IPL_DEPTH_8U, 1)
+			self.v = cv.CreateImage(size, cv.IPL_DEPTH_8U, 1)
+			self.resA = cv.CreateImage(size, cv.IPL_DEPTH_8U, 1)
+			self.resB = cv.CreateImage(size, cv.IPL_DEPTH_8U, 1)
+			self.resC = cv.CreateImage(size, cv.IPL_DEPTH_8U, 1)
+		
+		cv.CvtColor(image, hsv, cv.CV_RGB2HSV)
+		cv.Split(hsv, self.h, self.s, self.v, None)
+		
+		res = cv.CreateImage(size, cv.IPL_DEPTH_8U, 1)
+		
+		cv.CmpS(self.h, self.skin['HMin'], self.resA, cv.CV_CMP_GT)
+		cv.CmpS(self.h, self.skin['HMax'], self.resB, cv.CV_CMP_LT)
+		cv.And(self.resA, self.resB, res)
+		cv.CmpS(self.s, self.skin['SMin'], self.resA, cv.CV_CMP_GT)
+		cv.CmpS(self.s, self.skin['SMax'], self.resB, cv.CV_CMP_LT)
+		cv.And(self.resA, self.resB, self.resC)
+		cv.And(self.resC, res, res)
+		cv.CmpS(self.v, self.skin['VMin'], self.resA, cv.CV_CMP_GT)
+		cv.CmpS(self.v, self.skin['VMax'], self.resB, cv.CV_CMP_LT)
+		cv.And(self.resA, self.resB, self.resC)
+		cv.And(self.resC, res, res)
+		
+		cv.Dilate(res, res, None, self.skin['Dilate'])
+		cv.Erode(res, res, None, self.skin['Erode'])
+
+		storage = cv.CreateMemStorage()
+		contour = cv.CloneImage(res)
+		objects = cv.FindContours(contour, storage, cv.CV_RETR_TREE, cv.CV_CHAIN_APPROX_SIMPLE)
+		
+		cv.ShowImage('Skin', res)
+		
+		objects = self.__getObjects(objects)
+
+		detected = []
+		for obj in objects:
+			if obj[2]>self.skin['MinSize'] and obj[3]>self.skin['MinSize']:
+				print obj
+				cv.ResetImageROI(image)
+				cv.SetImageROI(image, obj)
+				found = HaarDetector.detect(self, image)
+				for f in found:
+					f[0] = f[0] + obj[0]
+					f[1] = f[1] + obj[1]
+					detected.append(f)
+		cv.ResetImageROI(image)
+		return detected
+		

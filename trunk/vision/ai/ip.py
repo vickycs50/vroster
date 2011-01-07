@@ -1,5 +1,6 @@
 import pymprog as mp
 import numpy
+import scipy.stats as stats
 
 
 class IP:
@@ -8,8 +9,14 @@ class IP:
 		self.last = None
 		
 	def predict(self, c):
-		unknownCost = numpy.average(c, 1)
+		if c.size == 0:
+			return []
+
+		unknownDistcount =  stats.beta.cdf((float(c.shape[0])/c.shape[1]), .5, .5)
+		unknownCost = numpy.average(c, 1) * unknownDistcount
 		c = numpy.hstack((c, unknownCost))
+		
+		#print numpy.cast[int](c)
 
 		added = None
 		addedElems = 0
@@ -60,6 +67,9 @@ class IP:
 		labels = X.reshape(((elems-addedElems)/(recognizers), recognizers))
 		predicted = []
 		for i in range(0, labels.shape[0]):
-			predicted.append(numpy.argmax(labels[i,:]))
+			l = numpy.argmax(labels[i,:])
+			if l==recognizers-1:
+				l = -1
+			predicted.append(l)
 			
 		return predicted

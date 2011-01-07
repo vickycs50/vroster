@@ -8,9 +8,11 @@ class TrivialTracker(BaseTracker):
 	def __init__(self):
 		self.objects = None
 
+	def reset(self):
+		self.objects = None
 
 	def update(self, observations):
-
+		
 		if self.objects == None and len(observations)>0:
 			self.objects = numpy.matrix(observations)
 		if self.objects == None:
@@ -32,6 +34,9 @@ class TrivialTracker(BaseTracker):
 		return self.getObjects()
 		
 	def getObjects(self):
+		if self.objects==None:
+			return []
+			
 		res = []
 		for n in range(0, self.objects.shape[0]):
 			a = numpy.asarray(self.objects[n,:])
