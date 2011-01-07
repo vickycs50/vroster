@@ -34,4 +34,14 @@ MatlabArch = 'maci64'
 # --------------------------------------------------------------------
 HaarCascade = 'data/opencv-24x24.xml'
 HaarSize = (24, 24)
-
+HaarSkin = {
+	'HMin': 75,
+	'HMax': 230,
+	'SMin': 80,
+	'SMax': 140,
+	'VMin': 100,
+	'VMax': 256,
+	'Dilate': 5,
+	'Erode': 1,
+	'MinSize', 10
+}

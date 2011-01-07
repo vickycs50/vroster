@@ -49,6 +49,11 @@ def toGray(image):
 	return imageGray
 	
 def extractSubImage(image, region, size):
+	if region[0]<0:
+		region = (0, region[1], region[2], region[3])
+	if region[1]<0:
+		region = (region[0], 0, region[2], region[3])
+
 	sub = cv.GetSubRect(image, region)
 	box = cv.CreateImage(size, 8, 1)
 	cv.Resize(sub, box)

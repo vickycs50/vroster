@@ -1,5 +1,6 @@
 import cv
 import math
+import time
 
 font = cv.InitFont(cv.CV_FONT_HERSHEY_SIMPLEX, .35, .35)
 
@@ -10,14 +11,17 @@ class CVWindow:
 		cv.NamedWindow(name, 1)
 		
 	def update(self, canvas):
-	
-		cv.ShowImage(self.name, canvas.resize(.8))
+		self.canvas = canvas
+		self.curr = canvas.resize(1)
+		cv.ShowImage(self.name, self.curr)
+		cv.WaitKey(1)
 
 
 class CVCanvas:
 	
-	def __init__(self, image):
-		self.image = cv.CloneImage(image)
+	def __init__(self, img):
+		self.image = cv.CloneImage(img)
+		#cv.ResetImageROI(self.image)
 		
 	def drawRect(self, rect, color):
 		tl = (rect[0], rect[1])

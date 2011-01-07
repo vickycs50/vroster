@@ -6,9 +6,10 @@ import mdp
 from BaseRecognizer import *
 
 class LBPRecognizer(BaseRecognizer):
+	cache = dict()
 	
-	def __init__(self, matlab=None):
-		self.matlab = matlab
+	def __init__(self):
+		BaseRecognizer.__init__(self)
 		self.X = []
 		
 	def __compute(self, img):
@@ -40,8 +41,6 @@ class LBPRecognizer(BaseRecognizer):
 
 		return res.ravel()	
 		
-		#return self.matlab.lbp(img, 1)[0]
-		
 	def update(self, image):
 		self.X.append(self.__compute(image))
 		
@@ -51,16 +50,14 @@ class LBPRecognizer(BaseRecognizer):
 
 		
 	def query(self, image):
-		img = numpy.cast[float](numpy.matrix(self.__compute(image)))
+		if len(self.X)==0:
+			return .000001
+		if 	id(image) not in self.cache:
+			self.cache[id(image)] = numpy.cast[float](numpy.matrix(self.__compute(image)))
+		img = self.cache[id(image)]
 		
-		res = []
-		for x in self.X:
-			res.append(distance.euclidean(x, img))
-		
-		if len(res)==0:
-			res = [0]
-        
-		return numpy.average(res)
-		
+		return distance.euclidean(self.X, img)
+		#distance.braycurtis(self.X, img)/len(self.X)*1000
+
 		#y = self.pca(img)
 		#return numpy.power(y,2).sum()*-1
