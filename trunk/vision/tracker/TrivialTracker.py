@@ -12,24 +12,47 @@ class TrivialTracker(BaseTracker):
 		self.objects = None
 
 	def update(self, observations):
-		
 		if self.objects == None and len(observations)>0:
 			self.objects = numpy.matrix(observations)
 		if self.objects == None:
 			return []
 		
 		for d in observations:
-			center = self.__center(d)
+			self.objects = numpy.vstack((self.objects, d))
+		
+		while True:
+			obj = []
 			
-			distances = []
-			for n in range(0, self.objects.shape[0]):
-				currentCenter = self.__center(numpy.asarray(self.objects[n,:])[0])
-				distances.append(distance.euclidean(currentCenter, center))
-			
-			if numpy.min(distances)<50:
-				self.objects[numpy.argmin(distances)] = d
+			for i in range(0, self.objects.shape[0]):
+				for j in range(0, self.objects.shape[0]):
+					if i!=j and i not in obj and j not in obj:
+						ic = self.__center(numpy.asarray(self.objects[i,:])[0])
+						jc = self.__center(numpy.asarray(self.objects[j,:])[0])
+						if distance.euclidean(ic, jc)<50:
+							obj.append(j)
+							
+			if obj == []:
+				break
 			else:
-				self.objects = numpy.vstack((self.objects, d))
+				new = []
+				for i in range(0, self.objects.shape[0]):
+					if i not in obj:
+						new.append(self.objects[i,:])
+				self.objects = numpy.vstack(new)
+
+				
+		# for d in observations:
+		# 	center = self.__center(d)
+		# 	
+		# 	distances = []
+		# 	for n in range(0, self.objects.shape[0]):
+		# 		currentCenter = self.__center(numpy.asarray(self.objects[n,:])[0])
+		# 		distances.append(distance.euclidean(currentCenter, center))
+		# 	
+		# 	if numpy.min(distances)<50:
+		# 		self.objects[numpy.argmin(distances)] = d
+		# 	else:
+		# 		self.objects = numpy.vstack((self.objects, d))
 				
 		return self.getObjects()
 		
