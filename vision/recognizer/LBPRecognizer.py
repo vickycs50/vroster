@@ -1,5 +1,6 @@
 import numpy
 import scipy.spatial.distance as distance
+import scipy.weave as weave
 from math import *
 import mdp
 
@@ -8,9 +9,10 @@ from BaseRecognizer import *
 class LBPRecognizer(BaseRecognizer):
 	cache = dict()
 	
-	def __init__(self):
+	def __init__(self, cversion=False):
 		BaseRecognizer.__init__(self)
 		self.X = []
+		self.cversion = cversion
 		
 	def __compute(self, img):
 		cellSize = [float(12), float(12)]
@@ -21,23 +23,56 @@ class LBPRecognizer(BaseRecognizer):
 		res = numpy.zeros((cells[0], cells[1], 2**(radius*2+1)**2))
 
 		
-		for y in range(size[0]):
-			for x in range(size[1]):
-				cx = floor(x/cellSize[0])
-				cy = floor(y/cellSize[1])
+		if self.cversion:
+			code = """
+			int sizeY = size[0];
+			int sizeX = size[1];
+			int cSizeX = cellSize[0];
+			int cSizeY = cellSize[1];
+		
+			for(int y=0; y<sizeY; y++) {
+				for(int x=0; x<sizeX; x++) {
+					int cx = floor(x/cSizeX);
+					int cy = floor(y/cSizeY);
 				
-				num = 0
-				val = img[y, x]
-				count = 0
+					int num = 0;
+					int val = img(y, x);
+					int count = 0;
 				
-				for ty in range(y-radius, y+radius+1):		
-					for tx in range(x-radius, x+radius+1):
-						if tx>=0 and tx<size[1] and ty>=0 and ty<size[0]:
-							if val>img[ty, tx]:
-								num += 2**count
-						count += 1
-						
-				res[cy, cx, num] += 1 
+					for(int ty=y-radius; ty<y+radius+1; ty++) {
+						for(int tx=x-radius; tx<x+radius+1; tx++) {
+							if(tx>=0 && tx<sizeX && ty>=0 && ty<sizeY)
+								if(val>=img(ty, tx))
+									num += pow(2, count);
+							count++;
+						}
+					} 
+				
+					res(cy, cx, num) += 1;
+				}
+			}
+		
+			"""
+		
+			weave.inline(code, ['size', 'cellSize', 'radius', 'img', 'res'], type_converters=weave.converters.blitz, compiler='gcc')
+		else:
+			for y in range(size[0]):
+				for x in range(size[1]):
+					cx = floor(x/cellSize[0])
+					cy = floor(y/cellSize[1])
+					
+					num = 0
+					val = img[y, x]
+					count = 0
+				
+					for ty in range(y-radius, y+radius+1):		
+						for tx in range(x-radius, x+radius+1):
+							if tx>=0 and tx<size[1] and ty>=0 and ty<size[0]:
+								if val>img[ty, tx]:
+									num += 2**count
+							count += 1
+							
+					res[cy, cx, num] += 1 
 
 		return res.ravel()	
 		
