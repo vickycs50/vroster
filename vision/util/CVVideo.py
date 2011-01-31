@@ -17,7 +17,7 @@ class CVBaseVideo(BaseVideo):
 		pass
 		
 class CVFileVideo(CVBaseVideo):
-	
+
 	def __init__(self, filename):
 		CVBaseVideo.__init__(self, cv.CaptureFromFile(filename))
 		

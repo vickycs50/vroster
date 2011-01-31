@@ -12,7 +12,6 @@ class IP:
 		if c.size == 0:
 			return []
 
-		added = None
 		addedElems = 0
 		if c.shape[1]-c.shape[0]>1:
 			added = numpy.zeros((c.shape[1]-c.shape[0], c.shape[1]))
@@ -21,37 +20,37 @@ class IP:
 
 		detected = c.shape[0]
 		recognizers = c.shape[1]
-		elems = detected * recognizers
+		size = c.size
 		
 		mp.beginModel('basic')
 		mp.verbose(False)
-		x = mp.var(range(elems), 'X', kind=bool)
+		x = mp.var(range(size), 'X', kind=bool)
 
 		# One label per detected object
 		for i in range(0, detected):
 			tmp = numpy.zeros((detected, recognizers))
 			tmp[i, :] = 1
-			tmp = tmp.reshape((1, elems))[0]
-			mp.st(sum(x[j]*int(tmp[j]) for j in range(elems))==1)
+			tmp = tmp.reshape((1, size))[0]
+			mp.st(sum(x[j]*int(tmp[j]) for j in range(size))==1)
 			
 		# Use recognizer up to once
 		for i in range(0, recognizers-1):
 			tmp = numpy.zeros((detected, recognizers))
 			tmp[:, i] = 1
-			tmp = tmp.reshape((1, elems))[0]
-			mp.st(sum(x[j]*int(tmp[j]) for j in range(elems))==1)
+			tmp = tmp.reshape((1, size))[0]
+			mp.st(sum(x[j]*int(tmp[j]) for j in range(size))<=1)
 			
-		c = c.reshape((1, elems)).tolist()[0]
+		c = c.reshape((1, size)).tolist()[0]
 			
-		mp.minimize(sum(c[i]*x[i] for i in range(elems)), 'myobj')
+		mp.minimize(sum(c[i]*x[i] for i in range(size)), 'myobj')
 		mp.solve(int)
 		
-		X = numpy.zeros((1, elems))
-		for i in range(elems):
+		X = numpy.zeros((1, size))
+		for i in range(size):
 			X[0, i] = x[i].primal
-		X = X[0,0:elems-addedElems]
+		X = X[0,0:size-addedElems]
 		
-		labels = X.reshape(((elems-addedElems)/(recognizers), recognizers))
+		labels = X.reshape(((size-addedElems)/(recognizers), recognizers))
 		predicted = []
 		for i in range(0, labels.shape[0]):
 			l = numpy.argmax(labels[i,:])
