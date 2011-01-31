@@ -7,16 +7,17 @@ font = cv.InitFont(cv.CV_FONT_HERSHEY_SIMPLEX, .35, .35)
 class CVWindow:
 	
 	def __init__(self, name=None, output=None):
+		
+		self.name = None
+		self.out = None
+		
 		if name!=None:
 			self.name = name
 			cv.NamedWindow(name, 1)
-		else:
-			self.name = None
 			
 		if output!=None:
 			self.out = cv.CreateVideoWriter(output, cv.CV_FOURCC('P','I','M','1'), 30, (1280, 720), True)
-		else:
-			self.out = None
+			
 		
 	def update(self, canvas):
 	
@@ -25,6 +26,7 @@ class CVWindow:
 		
 		if self.name!=None:
 			cv.ShowImage(self.name, self.curr)
+			cv.WaitKey(1)
 		if self.out!=None:
 			cv.WriteFrame(self.out, self.curr)
 		
@@ -34,7 +36,6 @@ class CVCanvas:
 	
 	def __init__(self, img):
 		self.image = cv.CloneImage(img)
-		#cv.ResetImageROI(self.image)
 		
 	def drawRect(self, rect, color):
 		tl = (rect[0], rect[1])

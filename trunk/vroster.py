@@ -17,12 +17,12 @@ from vision.ai.gap import *
 # Setup UI
 ui = None
 if config.EnableUI == True:
-	ui = CVWindow(None, None)
+	ui = CVWindow('Vroster', None)
 
 # Weight of past history
 alpha = 0
 # Weight of "unknown face"
-beta = .100
+beta = 1
 # Previous solution
 prev = None
 
@@ -53,31 +53,32 @@ try:
 		
 		profile.start('FPS')
 		frame = video.next()
+		
 		if frame==None:
 			print 'Movie ended!'
 			break
 
 		frameGray = cv.CreateImage(cv.GetSize(frame), cv.IPL_DEPTH_8U, 1)
 		cv.CvtColor(frame, frameGray, cv.CV_RGB2GRAY)
-
+        
 		# Get objects
 		profile.start('Haar')
 		observations = detector.detect(frame)
 		profile.end('Haar')
-
+        
 		profile.start('Track')
 		objects = tracker.update(observations)
 		profile.end('Track')
-
+        
 		objectImages = Image.extractSubImages(frameGray, objects, config.BoundingBox)
-
+        
 		# Generate recognition matrix
 		recognized = []
 		profile.start('LBP')
 		for image in objectImages:
 			recognized.append(recognizers.query(image))
 		profile.end('LBP')
-
+        
 		# Attempt to find best matching
 		w = numpy.matrix(recognized)
 		
@@ -87,7 +88,7 @@ try:
 			for x in itertools.product(range(0, w.shape[0]), repeat=2):
 				if x[0]<len(prev[1]) and x[1]<len(prev[1]):
 					prior[x[0], x[1]] = distance.euclidean(objectImages[x[0]], prev[1][x[1]])
-
+        
 			for i in range(0, len(prev[0])):
 				if prev[0][i]>-1:
 					w[i, prev[0][i]] -= prior[i,i]*alpha
@@ -108,17 +109,18 @@ try:
 		prev = [predicted, objectImages]
 		
 		track.append(predicted)
-
+        
 		if ui != None:
 			canvas = CVCanvas(frame)
-
+        
 			if len(predicted)>0:
 				for i in range(0, len(objects)):					
 					label = predicted[i]
 					canvas.drawText('%d'%(label), (objects[i][0], objects[i][1]-3), (255, 255, 0))
 					canvas.drawRect(objects[i], (255,0,0))
 				
-			#ui.update(canvas)
+			ui.update(canvas)
+			
 			#canvas.saveWithID('gap-10-08', fid)
 			
 		profile.end('FPS')
