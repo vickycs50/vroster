@@ -17,7 +17,8 @@ class BagRecognizer(BaseRecognizer):
 		
 		for currentDir in directory:
 			directories = os.listdir(currentDir)
-		
+			list.sort(directories)
+			
 			for d in directories:
 				if d[0]!='.':
 				
