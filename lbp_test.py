@@ -2,20 +2,14 @@ import numpy
 import vision.recognizer.LBPRecognizer as lbp
 import vision.util.Profile as profile
 
-a = lbp.LBPRecognizer()
-p = profile.Profile()
+a0 = lbp.LBPRecognizer(cversion=True)
+a1 = lbp.LBPRecognizer(cversion=False)
+
+b = numpy.random.rand(32,32)
+
+a0.update(b)
+a1.update(b)
 
 
-for n in range(0, 25):
-	p.start('Init')
-	a.update(numpy.random.rand(100,100))
-	p.end('Init')
-
-
-for n in range(0, 100):
-	p.start('Test')
-	a.query(numpy.random.rand(100,100))
-	p.end('Test')
-
-
-p.stats()
+print a0.X
+print a1.X
