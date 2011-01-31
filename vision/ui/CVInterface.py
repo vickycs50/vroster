@@ -6,15 +6,28 @@ font = cv.InitFont(cv.CV_FONT_HERSHEY_SIMPLEX, .35, .35)
 
 class CVWindow:
 	
-	def __init__(self, name):
-		self.name = name
-		cv.NamedWindow(name, 1)
+	def __init__(self, name=None, output=None):
+		if name!=None:
+			self.name = name
+			cv.NamedWindow(name, 1)
+		else:
+			self.name = None
+			
+		if output!=None:
+			self.out = cv.CreateVideoWriter(output, cv.CV_FOURCC('P','I','M','1'), 30, (1280, 720), True)
+		else:
+			self.out = None
 		
 	def update(self, canvas):
+	
 		self.canvas = canvas
 		self.curr = canvas.resize(1)
-		cv.ShowImage(self.name, self.curr)
-		cv.WaitKey(1)
+		
+		if self.name!=None:
+			cv.ShowImage(self.name, self.curr)
+		if self.out!=None:
+			cv.WriteFrame(self.out, self.curr)
+		
 
 
 class CVCanvas:
@@ -36,3 +49,6 @@ class CVCanvas:
 		c = cv.CreateImage((int(s[0]*fraction), int(s[1]*fraction)), self.image.depth, self.image.nChannels)
 		cv.Resize(self.image, c, cv.CV_INTER_CUBIC)
 		return c
+		
+	def saveWithID(self, folder, fid):
+		cv.SaveImage('%s/%04d.png'%(folder, fid), self.resize(1))

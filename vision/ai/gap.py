@@ -5,38 +5,33 @@ import scipy.spatial.distance as distance
 class GapApproximation:
 	def __init__(self):
 		pass
-		
+
 	def predict(self, c):
-
 		if c.size == 0:
-			return []
+		        return []
+    
+		c = ((c.max() + 1) - c).transpose()
 
-		c = ((c.max() + 1) - c)
-		
 		t = [-1 for i in range(0, c.shape[0])]
 
-		# For each bin
+
 		for j in range(0, c.shape[1]):
-			p = []
-			
-			for i in range(0, c.shape[0]):
-				if t[i]==-1:
-					p.append(c[i,j])
-				else:
-					p.append(c[i,j]-c[i,t[i]])
-			
-			if j<c.shape[1]-1:
-				s = int(numpy.argmax(p))
-				t[s] = j
-			else:
-				for i in range(0, len(p)):
-					if p[i]>0:
-						t[i] = j
-		
+		        p = []
+		        for i in range(0, c.shape[0]):
+		                if t[i]==-1:
+		                        p.append(c[i, j])
+		                else:
+		                        p.append(c[i, j] - c[i, t[i]])
+
+		        s = numpy.argmax(p)
+
+		        t[int(s)] = j
+
+		res = [-1 for i in range(0, c.shape[1])]
 		for i in range(0, len(t)):
-			if t[i]==c.shape[1]-1:
-				t[i]=-1
-		return t
+		        if t[i]>-1:
+		                res[t[i]] = i
+		return res		
 
 		
 class GapApproximation2(GapApproximation):
