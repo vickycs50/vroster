@@ -23,12 +23,12 @@ class LBPRecognizer(BaseRecognizer):
 		res = numpy.zeros((cells[0], cells[1], 2**(radius*2+1)**2))
 
 		
-		if self.cversion:
+		if self.cversion == True:
 			code = """
-			int sizeY = size[0];
-			int sizeX = size[1];
-			int cSizeX = cellSize[0];
-			int cSizeY = cellSize[1];
+			double sizeY = size[0];
+			double sizeX = size[1];
+			double cSizeX = cellSize[0];
+			double cSizeY = cellSize[1];
 		
 			for(int y=0; y<sizeY; y++) {
 				for(int x=0; x<sizeX; x++) {
@@ -36,13 +36,13 @@ class LBPRecognizer(BaseRecognizer):
 					int cy = floor(y/cSizeY);
 				
 					int num = 0;
-					int val = img(y, x);
-					int count = 0;
+					double val = img(y, x);
+					double count = 0;
 				
 					for(int ty=y-radius; ty<y+radius+1; ty++) {
 						for(int tx=x-radius; tx<x+radius+1; tx++) {
 							if(tx>=0 && tx<sizeX && ty>=0 && ty<sizeY)
-								if(val>=img(ty, tx))
+								if(val>img(ty, tx))
 									num += pow(2, count);
 							count++;
 						}
