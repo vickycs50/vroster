@@ -26,7 +26,7 @@ class CVWindow:
 		
 		if self.name!=None:
 			cv.ShowImage(self.name, self.curr)
-			cv.WaitKey(1)
+			cv.WaitKey(10)
 		if self.out!=None:
 			cv.WriteFrame(self.out, self.curr)
 		

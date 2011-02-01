@@ -28,9 +28,9 @@ class GapApproximation:
 		        t[int(s)] = j
 
 		res = [-1 for i in range(0, c.shape[1])]
-		for i in range(0, len(t)):
-		        if t[i]>-1:
-		                res[t[i]] = i
+		for i in range(0, len(t)-1):
+			if t[i]>-1:
+					res[t[i]] = i
 		return res		
 
 		
