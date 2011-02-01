@@ -22,7 +22,7 @@ class BagRecognizer(BaseRecognizer):
 			for d in directories:
 				if d[0]!='.':
 				
-					print 'Loading recognizer:',d 
+					#print 'Loading recognizer:',d 
 					files = os.listdir(currentDir+'/'+d)
 				
 					if cid < len(self.classifiers):
@@ -35,8 +35,8 @@ class BagRecognizer(BaseRecognizer):
 								self.classifiers[cid].update(x)
 							if f == 'info.txt':
 								self.classifiers[cid].info =  open(currentDir+'/'+d+'/'+f, 'r').read()
-					else:
-						print 'Skipping..'
+					#else:
+					#	print 'Skipping..'
 					cid += 1
 		for i in range(cid, len(self.classifiers)):
 			self.classifiers.pop()

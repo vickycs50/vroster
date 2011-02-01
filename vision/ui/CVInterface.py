@@ -16,7 +16,7 @@ class CVWindow:
 			cv.NamedWindow(name, 1)
 			
 		if output!=None:
-			self.out = cv.CreateVideoWriter(output, cv.CV_FOURCC('P','I','M','1'), 30, (1280, 720), True)
+			self.out = cv.CreateVideoWriter(output, cv.CV_FOURCC('F','L','V','1'), 20, (1280, 720), True)
 			
 		
 	def update(self, canvas):
