@@ -91,7 +91,7 @@ class LBPRecognizer(BaseRecognizer):
 			self.cache[id(image)] = numpy.cast[float](numpy.matrix(self.__compute(image)))
 		img = self.cache[id(image)]
 		
-		return distance.euclidean(self.X, img)
+		return numpy.linalg.norm(self.X-img)
 		#distance.braycurtis(self.X, img)/len(self.X)*1000
 
 		#y = self.pca(img)

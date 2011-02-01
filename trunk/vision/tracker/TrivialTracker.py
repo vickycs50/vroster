@@ -1,5 +1,4 @@
 import numpy
-import scipy.spatial.distance as distance
 
 from BaseTracker import *
 
@@ -28,7 +27,7 @@ class TrivialTracker(BaseTracker):
 					if i!=j and i not in obj and j not in obj:
 						ic = self.__center(numpy.asarray(self.objects[i,:])[0])
 						jc = self.__center(numpy.asarray(self.objects[j,:])[0])
-						if distance.euclidean(ic, jc)<50:
+						if numpy.linalg.norm(ic-jc)<50:
 							obj.append(j)
 							
 			if obj == []:
@@ -39,20 +38,6 @@ class TrivialTracker(BaseTracker):
 					if i not in obj:
 						new.append(self.objects[i,:])
 				self.objects = numpy.vstack(new)
-
-				
-		# for d in observations:
-		# 	center = self.__center(d)
-		# 	
-		# 	distances = []
-		# 	for n in range(0, self.objects.shape[0]):
-		# 		currentCenter = self.__center(numpy.asarray(self.objects[n,:])[0])
-		# 		distances.append(distance.euclidean(currentCenter, center))
-		# 	
-		# 	if numpy.min(distances)<50:
-		# 		self.objects[numpy.argmin(distances)] = d
-		# 	else:
-		# 		self.objects = numpy.vstack((self.objects, d))
 				
 		return self.getObjects()
 		
@@ -68,5 +53,5 @@ class TrivialTracker(BaseTracker):
 		
 		
 	def __center(self, d):
-		return (d[0]+d[2]/2, d[1]+d[3]/2)
+		return numpy.matrix([d[0]+d[2]/2, d[1]+d[3]/2])
 		

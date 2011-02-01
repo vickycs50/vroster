@@ -14,11 +14,6 @@ from vision.ui.CVInterface import *
 from vision.ai.ip import *
 from vision.ai.gap import *
 
-# Setup UI
-ui = None
-if config.EnableUI == True:
-	ui = CVWindow('Vroster', None)
-
 # Weight of past history
 alpha = 0
 # Weight of "unknown face"
@@ -30,6 +25,8 @@ prev = None
 video = CVVideo.CVFileVideo(config.TrialMovie)
 detector = SkinHaarDetector(config.HaarCascade, config.HaarSize, config.HaarSkin)
 tracker = TrivialTracker()
+ui = CVWindow(config.UIName, config.UISaveTo)
+
 if config.MinProblem == 'IP':
 	ai = IP()
 elif config.MinProblem == 'Gap2':
@@ -41,19 +38,19 @@ profile = Profile()
 # Recognizer 
 recognizers = []
 for i in range(0, config.PhotoBag):
-	recognizers.append(LBPRecognizer(cversion=False))
+	recognizers.append(LBPRecognizer(cversion=True))
 recognizers = BagRecognizer(config.PhotoPath, recognizers, config.BoundingBox)
 
 track = []
 
 
 try:
-	for fid in range(0, 180):
-		print fid, '%.02f%%'%(fid/180.0)
+	for fid in range(0, 300):
+		print fid, '%.02f%%'%(fid/300.0)
 		
-		profile.start('FPS')
-		frame = video.next()
-		
+		for i in range(0, 5):
+			frame = video.next()
+			
 		if frame==None:
 			print 'Movie ended!'
 			break
@@ -62,22 +59,16 @@ try:
 		cv.CvtColor(frame, frameGray, cv.CV_RGB2GRAY)
         
 		# Get objects
-		profile.start('Haar')
 		observations = detector.detect(frame)
-		profile.end('Haar')
         
-		profile.start('Track')
 		objects = tracker.update(observations)
-		profile.end('Track')
         
 		objectImages = Image.extractSubImages(frameGray, objects, config.BoundingBox)
         
 		# Generate recognition matrix
 		recognized = []
-		profile.start('LBP')
 		for image in objectImages:
 			recognized.append(recognizers.query(image))
-		profile.end('LBP')
         
 		# Attempt to find best matching
 		w = numpy.matrix(recognized)
@@ -99,9 +90,7 @@ try:
 		w = numpy.hstack((w,a))
 		
 		
-		profile.start('IP')
 		predicted = ai.predict(w)
-		profile.end('IP')
 		
 		print numpy.cast[int](w)
 		print predicted
@@ -120,10 +109,8 @@ try:
 					canvas.drawRect(objects[i], (255,0,0))
 				
 			ui.update(canvas)
+			canvas.saveWithID('output-frames', fid)
 			
-			#canvas.saveWithID('gap-10-08', fid)
-			
-		profile.end('FPS')
 except KeyboardInterrupt:
 	print ''
 	profile.stats()
