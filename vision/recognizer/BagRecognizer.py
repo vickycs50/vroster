@@ -9,6 +9,7 @@ class BagRecognizer(BaseRecognizer):
 	
 	def __init__(self, directory, classifiers, size):
 		self.classifiers = classifiers
+		self.dist = None
 		
 		if getattr(directory, '__iter__', False) == False:
 			directory = (directory, )
@@ -48,3 +49,13 @@ class BagRecognizer(BaseRecognizer):
 			res.append(c.query(image))
 
 		return res
+		
+	def distance(self):
+		if self.dist == None:
+			self.dist = numpy.zeros((len(self.classifiers), len(self.classifiers)))
+			for i in range(0, len(self.classifiers)):
+				for j in range(0, len(self.classifiers)):
+					a = numpy.average(self.classifiers[i].X, axis=0)
+					b = numpy.average(self.classifiers[j].X, axis=0)
+					self.dist[i,j] = numpy.linalg.norm(a-b)
+		return self.dist
