@@ -130,6 +130,7 @@ class VRoster:
 		
 			a = numpy.zeros((w.shape[0], 1)) + numpy.average(w)*self.beta
 			w = numpy.hstack((w,a))
+			print numpy.cast[int](w)
 	
 			predicted = ai.predict(w)
 			prev.append([predicted, objectImages])
@@ -149,7 +150,7 @@ class VRoster:
 				if len(predicted)>0:
 					for i in range(0, len(objects)):
 						label = predicted[i]
-						canvas.drawText('%d'%(label), (objects[i][0], objects[i][1]-3), (255, 255, 0))
+						canvas.drawText('[%02d]=%d'%(i, label), (objects[i][0], objects[i][1]-3), (255, 255, 0))
 						canvas.drawRect(objects[i], (255,0,0))
 			
 				ui.update(canvas)
@@ -157,5 +158,5 @@ class VRoster:
 		return track
 		
 if __name__ == '__main__':
-	v = VRoster(alpha=.1, beta=1, priorSize=5)
+	v = VRoster(alpha=1, beta=1, priorSize=5, ui=True)
 	v.run()		
