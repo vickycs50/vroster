@@ -5,8 +5,8 @@ import scipy.stats as stats
 
 class IP:
 	
-	def __init__(self):
-		pass
+	def __init__(self, constraints=True):
+		self.constraints = constraints
 		
 	def predict(self, c):
 		if c.size == 0:
@@ -25,6 +25,7 @@ class IP:
 		mp.beginModel('basic')
 		mp.verbose(False)
 		x = mp.var(range(size), 'X', kind=bool)
+		
 
 		# One label per detected object
 		for i in range(0, detected):
@@ -32,13 +33,14 @@ class IP:
 			tmp[i, :] = 1
 			tmp = tmp.reshape((1, size))[0]
 			mp.st(sum(x[j]*int(tmp[j]) for j in range(size))==1)
-			
-		# Use recognizer up to once
-		for i in range(0, recognizers-1):
-			tmp = numpy.zeros((detected, recognizers))
-			tmp[:, i] = 1
-			tmp = tmp.reshape((1, size))[0]
-			mp.st(sum(x[j]*int(tmp[j]) for j in range(size))<=1)
+
+		if self.constraints == True:
+			# Use recognizer up to once
+			for i in range(0, recognizers-1):
+				tmp = numpy.zeros((detected, recognizers))
+				tmp[:, i] = 1
+				tmp = tmp.reshape((1, size))[0]
+				mp.st(sum(x[j]*int(tmp[j]) for j in range(size))<=1)
 			
 		c = c.reshape((1, size)).tolist()[0]
 			
