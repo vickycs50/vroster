@@ -9,9 +9,9 @@ class IP:
 		self.constraints = constraints
 		
 	def predict(self, c):
-		if c.size == 0:
+		if c.size < 2:
 			return []
-
+		
 		addedElems = 0
 		if c.shape[1]-c.shape[0]>1:
 			added = numpy.zeros((c.shape[1]-c.shape[0], c.shape[1]))

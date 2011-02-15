@@ -131,13 +131,13 @@ class VRoster:
 		return track
 		
 if __name__ == '__main__':
-	v = VRoster(alpha=.75, beta=1, priorSize=0, frames=100, ui=True)
+	v = VRoster(alpha=1.75, beta=1, priorSize=5, frames=1000, ui=True)
 	track = v.run()		
-	v.profile.stats()
+	#v.profile.stats()
 	
-	# f = open('output.txt', 'w+')
-	# for t in track:
-	# 	while len(t)<len(track[-1]):
-	# 		t.append(-2)
-	# 	print >>f, t
-	# f.close()
+	f = open('output.txt', 'w+')
+	for t in track:
+		while len(t)<len(track[-1]):
+			t.append(-2)
+		print >>f, t
+	f.close()
