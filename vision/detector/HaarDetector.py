@@ -133,9 +133,12 @@ class SkinHaarDetector(HaarDetector):
 				for f in found:
 					f[0] = f[0] + obj[0]
 					f[1] = f[1] + obj[1]
-					self.skinPerc += f[2]*f[3]
+					print f, self.skin['MaxSize']
+					if f[2]<self.skin['MaxSize'] and f[3]<self.skin['MaxSize']:
+						self.skinPerc += f[2]*f[3]
+						detected.append(f)
 					
-					detected.append(f)
+		print '-----'
 		self.skinPerc /= float(size[0]*size[1])
 		cv.ResetImageROI(image)
 		
