@@ -53,7 +53,7 @@ class VRoster:
 		# Recognizer 
 		recognizers = []
 		for i in range(0, config.PhotoBag):
-			recognizers.append(LBPRecognizer(cversion=False))
+			recognizers.append(LBPRecognizer(cversion=True))
 		recognizers = BagRecognizer(config.PhotoPath, recognizers, config.BoundingBox)
 
 		track = []
@@ -112,9 +112,11 @@ class VRoster:
 			
 			self.profile.start('AI')
 			
-			print w
-			
 			predicted = ai.predict(w)
+			
+			#print predicted
+			#print w
+			
 			
 			self.profile.end('AI')
 			prev.append([predicted, objectImages])
