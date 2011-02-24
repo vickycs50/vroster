@@ -23,20 +23,13 @@ class BagRecognizer(BaseRecognizer):
 			for d in directories:
 				if d[0]!='.':
 				
-					#print 'Loading recognizer:',d 
+					#print 'Loading recognizer [%02d]: %s\t%s'%(cid, currentDir, d)
 					files = os.listdir(currentDir+'/'+d)
 				
 					if cid < len(self.classifiers):
 						for f in files:
 							if f[0] != '.' and f != 'info.txt':
 								image = cv.LoadImage(currentDir+'/'+d+'/'+f, cv.CV_LOAD_IMAGE_GRAYSCALE)
-								
-								tmp = cv.GetSize(image)
-								if tmp[0]<200 or tmp[1]<200:
-									image2 = cv.CreateImage((200,200), image.depth, 1)
-									cv.Resize(image, image2)
-									image = image2
-								
 							
 								image2 = cv.CreateImage(size, image.depth, 1)
 								cv.Resize(image, image2)

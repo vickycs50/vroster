@@ -16,12 +16,17 @@ class LBPRecognizer(BaseRecognizer):
 		
 	def __compute(self, img):
 		cellSize = [float(12), float(12)]
-		radius = 1
+		radius = 7
+		points = 8
 		
 		size = img.shape 
 		cells = [ceil(size[0]/float(cellSize[0])), ceil(size[1]/float(cellSize[1]))]
-		res = numpy.zeros((cells[0], cells[1], 2**(radius*2+1)**2))
+		res = numpy.zeros((cells[0], cells[1], 2**points))
 
+		xpoints = radius*numpy.cos(numpy.pi/(points/2) * numpy.array(range(0,points/2)))
+		ypoints = radius*numpy.sin(numpy.pi/(points/2) * numpy.array(range(0,points/2)))	
+		xpoints = numpy.hstack((xpoints, xpoints))
+		ypoints = numpy.hstack((ypoints, -ypoints))
 		
 		if self.cversion == True:
 			code = """
@@ -39,14 +44,16 @@ class LBPRecognizer(BaseRecognizer):
 					double val = img(y, x);
 					double count = 0;
 				
-					for(int ty=y-radius; ty<y+radius+1; ty++) {
-						for(int tx=x-radius; tx<x+radius+1; tx++) {
-							if(tx>=0 && tx<sizeX && ty>=0 && ty<sizeY)
-								if(val>img(ty, tx))
-									num += pow(2, count);
-							count++;
-						}
-					} 
+					for(int i=0; i<points; i++) {
+						int tx = x + xpoints(i);
+						int ty = y + ypoints(i);
+						bool tmp = 0;
+						if(tx>=0 && tx<sizeX && ty>=0 && ty<sizeY)
+							if(val>img(ty, tx))
+								tmp = 1;
+						num = (num<<1) | tmp;
+					
+					}
 				
 					res(cy, cx, num) += 1;
 				}
@@ -54,29 +61,38 @@ class LBPRecognizer(BaseRecognizer):
 		
 			"""
 		
-			weave.inline(code, ['size', 'cellSize', 'radius', 'img', 'res'], type_converters=weave.converters.blitz, compiler='gcc')
+			weave.inline(code, ['size', 'cellSize', 'radius', 'points', 'xpoints', 'ypoints', 'img', 'res'], type_converters=weave.converters.blitz, compiler='gcc')
 		else:
+
 			for y in range(size[0]):
 				for x in range(size[1]):
 					cx = floor(x/cellSize[0])
 					cy = floor(y/cellSize[1])
 					
-					num = 0
+					num = ''
 					val = img[y, x]
-					count = 0
-				
-					for ty in range(y-radius, y+radius+1):		
-						for tx in range(x-radius, x+radius+1):
-							if tx>=0 and tx<size[1] and ty>=0 and ty<size[0]:
-								if val>img[ty, tx]:
-									num += 2**count
-							count += 1
-							
+					
+					for i in range(0, points):
+						tx = int(x + xpoints[i])
+						ty = int(y + ypoints[i])
+						
+						if tx>=0 and tx<size[1] and ty>=0 and ty<size[0]:
+							if val<img[ty, tx]:
+								num += '1'
+							else:
+								num += '0'
+						else:
+							num += '0'
+					
+					num = int(num, 2)
 					res[cy, cx, num] += 1 
-		for y in range(0, res.shape[0]):
-			for x in range(0, res.shape[1]):
-				s = numpy.sum(res[y,x,:])
-				res[y,x,:] /= s
+		#numpy.set_printoptions(threshold=numpy.nan)
+		#print res.ravel()
+		# for y in range(0, res.shape[0]):
+		# 	for x in range(0, res.shape[1]):
+		# 		s = numpy.sum(res[y,x,:])
+		# 		res[y,x,:] /= s
+				
 		return res.ravel()	
 		
 	def update(self, image):
