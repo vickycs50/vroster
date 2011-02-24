@@ -4,6 +4,7 @@ import sys
 import numpy
 
 import config
+
 from vision.util import CVVideo, Image
 from vision.util.Profile import *
 from vision.detector import *
@@ -18,7 +19,7 @@ from vision.ai.trivial import *
 
 class VRoster:
 	
-	def __init__(self, alpha=0, beta=0, priorSize=0, frames=300, skipFrames=5, ui=False):
+	def __init__(self, alpha=0, beta=0, priorSize=0, frames=300, skipFrames=5, ui=False, output=None):
 		self.alpha = alpha 
 		self.beta = beta
 		self.priorSize = priorSize
@@ -26,18 +27,22 @@ class VRoster:
 		self.skipFrames = skipFrames
 		self.ui = ui
 		self.profile = Profile()
+		if output == None:
+			self.output = open('output.txt', 'w+')
+		else:
+			self.output = output
 		
-	def run(self):
+	def run(self, config=None):
 		prev = []
 
 		# Components
 		video = CVVideo.CVFileVideo(config.TrialMovie)
 		detector = SkinHaarDetector(config.HaarCascade, config.HaarSize, config.HaarSkin)
-		tracker = TrivialTracker(reset=False)
+		tracker = TrivialTracker(reset=~config.TrackerEnabled)
 		ui = CVWindow(config.UIName, config.UISaveTo)
 
 		if config.MinProblem == 'IP':
-			ai = IP(constraints=False)
+			ai = IP(constraints=config.MinProblemConstraints)
 		elif config.MinProblem == 'Gap2':
 			ai = GapApproximation()
 		elif config.MinProblem == 'Trivial':
@@ -48,7 +53,7 @@ class VRoster:
 		# Recognizer 
 		recognizers = []
 		for i in range(0, config.PhotoBag):
-			recognizers.append(LBPRecognizer(cversion=True))
+			recognizers.append(LBPRecognizer(cversion=False))
 		recognizers = BagRecognizer(config.PhotoPath, recognizers, config.BoundingBox)
 
 		track = []
@@ -70,7 +75,7 @@ class VRoster:
 			observations = detector.detect(frame)
 			objects = tracker.update(observations)
 			objectImages = Image.extractSubImages(frameGray, objects, config.BoundingBox)
-       
+
 			# Generate recognition matrix
 			recognized = []
 			for image in objectImages:
@@ -94,28 +99,35 @@ class VRoster:
 							for r in range(0, w.shape[1]):
 								if prev[pid][0][o] != r:
 									priorHistory[o, r] += 1
-							prior[o, :] += dist[prev[pid][0][o], :]
-				
+							try:	
+								prior[o, :] += dist[prev[pid][0][o], :]
+							except Exception:
+								print 'Prior exception'
+								
 				for o in range(0, w.shape[0]):
 					w[o, :] += priorHistory[o, :]/max(numpy.sum(priorHistory[o, :]),1.0)*prior[o,:]*self.alpha
 
-		
 			a = numpy.zeros((w.shape[0], 1)) + numpy.average(w)*self.beta
 			w = numpy.hstack((w,a))
 			
 			self.profile.start('AI')
+			
+			print w
+			
 			predicted = ai.predict(w)
+			
 			self.profile.end('AI')
 			prev.append([predicted, objectImages])
+			if len(prev)>self.priorSize:
+				prev.pop()
 
-			
 			currentTrack = []
-			print len(objects), len(predicted)
 			if len(objects)>0:
 				for (i,l) in enumerate(predicted):
 					tmp = [objects[i][0]+objects[i][2]/2.0, objects[i][1]+objects[i][3]/2.0, l]
 					currentTrack.append(tmp)
-			track.append(currentTrack)	
+			#track.append(currentTrack)	
+			print >>self.output, currentTrack
 			
 			if self.ui == True:
 				canvas = CVCanvas(frame)
@@ -131,13 +143,9 @@ class VRoster:
 		return track
 		
 if __name__ == '__main__':
-	v = VRoster(alpha=1.75, beta=1, priorSize=5, frames=1000, ui=True)
-	track = v.run()		
+	
+	v = VRoster(alpha=1.75, beta=1, priorSize=5, skipFrames=1, frames=9000, ui=False)
+	track = v.run(config.VideoRoster())		
 	#v.profile.stats()
 	
-	f = open('output.txt', 'w+')
-	for t in track:
-		while len(t)<len(track[-1]):
-			t.append(-2)
-		print >>f, t
-	f.close()
+ 

@@ -30,14 +30,23 @@ class BagRecognizer(BaseRecognizer):
 						for f in files:
 							if f[0] != '.' and f != 'info.txt':
 								image = cv.LoadImage(currentDir+'/'+d+'/'+f, cv.CV_LOAD_IMAGE_GRAYSCALE)
+								
+								tmp = cv.GetSize(image)
+								if tmp[0]<200 or tmp[1]<200:
+									image2 = cv.CreateImage((200,200), image.depth, 1)
+									cv.Resize(image, image2)
+									image = image2
+								
+							
 								image2 = cv.CreateImage(size, image.depth, 1)
 								cv.Resize(image, image2)
+								
 								x = Image.cv2array(image2)/255.0
 								self.classifiers[cid].update(x)
 							if f == 'info.txt':
 								self.classifiers[cid].info =  open(currentDir+'/'+d+'/'+f, 'r').read()
-					#else:
-					#	print 'Skipping..'
+					
+
 					cid += 1
 		for i in range(cid, len(self.classifiers)):
 			self.classifiers.pop()
