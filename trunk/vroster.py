@@ -107,16 +107,16 @@ class VRoster:
 				for o in range(0, w.shape[0]):
 					w[o, :] += priorHistory[o, :]/max(numpy.sum(priorHistory[o, :]),1.0)*prior[o,:]*self.alpha
 
-			a = numpy.zeros((w.shape[0], 1)) + numpy.average(w)*self.beta
+			a = numpy.zeros((w.shape[0], 1)) + 110#numpy.average(w,1)*self.beta
 			w = numpy.hstack((w,a))
 			
 			self.profile.start('AI')
 			
 			predicted = ai.predict(w)
 			
-			#print predicted
-			#print w
 			
+			print numpy.cast[int](w)
+			print predicted
 			
 			self.profile.end('AI')
 			prev.append([predicted, objectImages])
@@ -146,7 +146,7 @@ class VRoster:
 		
 if __name__ == '__main__':
 	
-	v = VRoster(alpha=1.75, beta=1, priorSize=5, skipFrames=1, frames=9000, ui=False)
+	v = VRoster(alpha=1.75, beta=.9, priorSize=5, skipFrames=5, frames=9000, ui=True)
 	track = v.run(config.VideoRoster())		
 	#v.profile.stats()
 	

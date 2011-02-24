@@ -89,9 +89,9 @@ class LBPRecognizer(BaseRecognizer):
 		#numpy.set_printoptions(threshold=numpy.nan)
 		#print res.ravel()
 		# for y in range(0, res.shape[0]):
-		# 	for x in range(0, res.shape[1]):
-		# 		s = numpy.sum(res[y,x,:])
-		# 		res[y,x,:] /= s
+		# 		for x in range(0, res.shape[1]):
+		# 			s = numpy.sum(res[y,x,:])
+		# 			res[y,x,:] /= s
 				
 		return res.ravel()	
 		
@@ -114,7 +114,7 @@ class LBPRecognizer(BaseRecognizer):
 		for i in range(0, len(self.X)):
 			res.append(numpy.linalg.norm(self.X[i]-img))
 			
-		return numpy.min(res)
+		return numpy.average(res)
 		#distance.braycurtis(self.X, img)/len(self.X)*1000
 
 		#y = self.pca(img)
