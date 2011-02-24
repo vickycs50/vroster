@@ -73,7 +73,10 @@ class LBPRecognizer(BaseRecognizer):
 							count += 1
 							
 					res[cy, cx, num] += 1 
-
+		for y in range(0, res.shape[0]):
+			for x in range(0, res.shape[1]):
+				s = numpy.sum(res[y,x,:])
+				res[y,x,:] /= s
 		return res.ravel()	
 		
 	def update(self, image):
@@ -91,7 +94,11 @@ class LBPRecognizer(BaseRecognizer):
 			self.cache[id(image)] = numpy.cast[float](numpy.matrix(self.__compute(image)))
 		img = self.cache[id(image)]
 		
-		return numpy.linalg.norm(self.X-img)
+		res = []
+		for i in range(0, len(self.X)):
+			res.append(numpy.linalg.norm(self.X[i]-img))
+			
+		return numpy.min(res)
 		#distance.braycurtis(self.X, img)/len(self.X)*1000
 
 		#y = self.pca(img)

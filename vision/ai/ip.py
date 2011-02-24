@@ -51,7 +51,7 @@ class IP:
 		for i in range(size):
 			X[0, i] = x[i].primal
 		X = X[0,0:size-addedElems]
-		
+
 		labels = X.reshape(((size-addedElems)/(recognizers), recognizers))
 		predicted = []
 		for i in range(0, labels.shape[0]):
