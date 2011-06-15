@@ -1,5 +1,6 @@
 import os
 import cv
+import sys
 import numpy
 
 from scikits.learn import svm
@@ -82,33 +83,63 @@ class BagRecognizerFDA(BagRecognizer):
 
 		training_data = numpy.vstack(training_data)
 		training_labels = numpy.hstack(training_labels)
+		
+		self.svm = []
+		for i in range(0, len(self.classifiers)):
+			#s = svm.SVC(kernel='rbf', probability=True)
+			s = svm.LinearSVC()
+			
+			a = numpy.where(training_labels==i)[0]
+			b = numpy.where(training_labels!=i)[0]
+			
+			l = training_labels.copy()
+			l[a] = 1.0
+			l[b] = 0.0
+			
+			print 'Fitting SVM ', i
+			s.fit(training_data, l)
 
-		print 'Building classifier'
-		#self.svm = svm.LinearSVC(multi_class=True)#SGDClassifier(n_iter=1000)
-		self.svm = svm.SVC(kernel='rbf', probability=True)
-		self.svm.fit(training_data, training_labels)
-		
-		
+			self.svm.append(s)
+			
 	def query(self, image):
 		test = self.classifiers[0].compute(image).tolist()
 		test = numpy.matrix([test])
 		
 		res = []
-		# for i in range(0, len(self.classifiers)):
-		# 	s = self.svm.score(test, i*1.0)
-		# 	#print self.svm.predict_proba(test), s
-		# 	res.append(100-s)
-		res = self.svm.predict_proba(test)[0]
-			
-
+		for i in range(0, len(self.classifiers)):
+			#s = self.svm[i].predict_log_proba(test)
+			s = self.svm[i].predict(test)[0]
+			res.append(1-s)
+		
 		return res
 		
-		# best = self.svm.predict(test)
-		# res = []
-		# for i in range(0, len(self.classifiers)):
-		# 	res.append(self.classifiers[i].query(image))
-		# 	if i==best:
-		# 		res[-1] = res[-1]*.8
-		# return res
-		
-		
+	# 
+	# 	print 'Building classifier'
+	# 	#self.svm = svm.LinearSVC(multi_class=True)#SGDClassifier(n_iter=1000)
+	# 	self.svm = svm.SVC(kernel='rbf', probability=True)
+	# 	self.svm.fit(training_data, training_labels)
+	# 	
+	# 	
+	# def query(self, image):
+	# 	test = self.classifiers[0].compute(image).tolist()
+	# 	test = numpy.matrix([test])
+	# 	
+	# 	res = []
+	# 	for i in range(0, len(self.classifiers)):
+	# 		s = self.svm.score(test, i*1.0)
+	# 		#print self.svm.predict_proba(test), s
+	# 		res.append(100-s)
+	# 	res = 1-self.svm.predict_proba(test)[0]
+	# 		
+	# 
+	# 	return res
+	# 	
+	# 	# best = self.svm.predict(test)
+	# 	# res = []
+	# 	# for i in range(0, len(self.classifiers)):
+	# 	# 	res.append(self.classifiers[i].query(image))
+	# 	# 	if i==best:
+	# 	# 		res[-1] = res[-1]*.8
+	# 	# return res
+	# 	
+	# 	
