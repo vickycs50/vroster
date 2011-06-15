@@ -4,8 +4,7 @@ import sys
 import numpy
 
 from scikits.learn import svm
-from scikits.learn.linear_model import SGDClassifier
-from scikits.learn.naive_bayes import GNB
+import PyML
 
 from ..util import Image
 from BaseRecognizer import *
@@ -112,34 +111,3 @@ class BagRecognizerFDA(BagRecognizer):
 			res.append(1-s)
 		
 		return res
-		
-	# 
-	# 	print 'Building classifier'
-	# 	#self.svm = svm.LinearSVC(multi_class=True)#SGDClassifier(n_iter=1000)
-	# 	self.svm = svm.SVC(kernel='rbf', probability=True)
-	# 	self.svm.fit(training_data, training_labels)
-	# 	
-	# 	
-	# def query(self, image):
-	# 	test = self.classifiers[0].compute(image).tolist()
-	# 	test = numpy.matrix([test])
-	# 	
-	# 	res = []
-	# 	for i in range(0, len(self.classifiers)):
-	# 		s = self.svm.score(test, i*1.0)
-	# 		#print self.svm.predict_proba(test), s
-	# 		res.append(100-s)
-	# 	res = 1-self.svm.predict_proba(test)[0]
-	# 		
-	# 
-	# 	return res
-	# 	
-	# 	# best = self.svm.predict(test)
-	# 	# res = []
-	# 	# for i in range(0, len(self.classifiers)):
-	# 	# 	res.append(self.classifiers[i].query(image))
-	# 	# 	if i==best:
-	# 	# 		res[-1] = res[-1]*.8
-	# 	# return res
-	# 	
-	# 	
