@@ -13,6 +13,9 @@ class LBPRecognizer(BaseRecognizer):
 		BaseRecognizer.__init__(self)
 		self.X = []
 		self.cversion = cversion
+	
+	def compute(self, img):
+		return self.__compute(img)
 		
 	def __compute(self, img):
 		cellSize = [float(12), float(12)]

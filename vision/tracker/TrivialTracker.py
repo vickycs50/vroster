@@ -4,15 +4,15 @@ from BaseTracker import *
 
 class TrivialTracker(BaseTracker):
 	
-	def __init__(self, reset=False):
+	def __init__(self, config):
 		self.objects = None
-		self.reset = reset
+		self.config = config
 
 	def reset(self):
 		self.objects = None
 
 	def update(self, observations):
-		if self.reset == True:
+		if self.config.TrackerEnabled == False:
 			self.objects = None
 		
 		if self.objects == None and len(observations)>0:
@@ -29,7 +29,7 @@ class TrivialTracker(BaseTracker):
 				bestDistance.append(numpy.linalg.norm(a-b))
 			
 			x = numpy.argmin(bestDistance)
-			if bestDistance[x]<50:
+			if bestDistance[x]<self.config.TrackerDistance:
 				self.objects[x, :] += numpy.matrix(observation)
 				self.objects[x, :] *= .5
 			else:
