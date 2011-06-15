@@ -80,7 +80,10 @@ class VRoster:
    
 		# Attempt to find best matching
 		w = numpy.matrix(recognized)
-
+		
+		print w
+		
+		
 		prior = numpy.zeros(w.shape)
 		priorHistory = numpy.zeros(w.shape)
 
@@ -156,7 +159,7 @@ class VRoster:
 		
 if __name__ == '__main__':
 	
-	v = VRoster(alpha=1.75, beta=1, priorSize=5, skipFrames=1, frames=4050, ui=True)
+	v = VRoster(alpha=1.75, beta=1, priorSize=5, skipFrames=5, frames=4050, ui=True)
 	track = v.run(config.VideoRoster())		
 
 	
