@@ -86,28 +86,32 @@ class BagRecognizerFDA(BagRecognizer):
 		self.svm = []
 		for i in range(0, len(self.classifiers)):
 			#s = svm.SVC(kernel='rbf', probability=True)
-			s = svm.LinearSVC()
+
 			
 			a = numpy.where(training_labels==i)[0]
-			b = numpy.where(training_labels!=i)[0]
-			
+			b = numpy.where(training_labels!=i)[0]			
 			l = training_labels.copy()
 			l[a] = 1.0
 			l[b] = 0.0
-			
-			print 'Fitting SVM ', i
-			s.fit(training_data, l)
 
+			problem = svm.svm_problem(l.tolist(), training_data.tolist())
+			
+			print '--- Fitting SVM ', i
+			s = svm.svm_train(problem, '-s 1 -n .1 -t 2 -b 1')
+		
 			self.svm.append(s)
+		
 			
 	def query(self, image):
 		test = self.classifiers[0].compute(image).tolist()
 		test = numpy.matrix([test])
-		
+
 		res = []
 		for i in range(0, len(self.classifiers)):
-			#s = self.svm[i].predict_log_proba(test)
-			s = self.svm[i].predict(test)[0]
-			res.append(1-s)
-		
+			y = test[0,:].tolist()
+			x = range(len(y))
+			s = svm.svm_predict(x, y, self.svm[i])
+			print s
+			res.append(s[2][0][0])
+
 		return res
