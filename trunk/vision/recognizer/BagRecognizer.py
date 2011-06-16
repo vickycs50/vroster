@@ -3,8 +3,8 @@ import cv
 import sys
 import numpy
 
-from scikits.learn import svm
-import PyML
+#from scikits.learn import svm
+import svmutil as svm
 
 from ..util import Image
 from BaseRecognizer import *
@@ -97,7 +97,7 @@ class BagRecognizerFDA(BagRecognizer):
 			problem = svm.svm_problem(l.tolist(), training_data.tolist())
 			
 			print '--- Fitting SVM ', i
-			s = svm.svm_train(problem, '-s 1 -n .1 -t 2 -b 1')
+			s = svm.svm_train(problem, '-s 1 -t 2 -b 1')
 		
 			self.svm.append(s)
 		

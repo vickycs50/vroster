@@ -159,7 +159,7 @@ class VRoster:
 if __name__ == '__main__':
 	
 	v = VRoster(alpha=1.75, beta=1, priorSize=5, skipFrames=3, frames=4050, ui=True)
-	track = v.run(config.VideoRoster())		
+	track = v.run(config.LargeClassroom())		
 
 	
  
