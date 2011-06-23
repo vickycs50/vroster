@@ -3,6 +3,7 @@ import cv
 
 from BaseRecognizer import *
 
+## Attempt to use a template based face recognizer... did not work
 class TemplateRecognizer(BaseRecognizer):
 	def __init__(self, data):
 		self.desc = []

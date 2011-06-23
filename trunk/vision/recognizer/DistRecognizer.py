@@ -3,6 +3,7 @@ import scipy.spatial.distance as distance
 
 from BaseRecognizer import *
 
+## Basic face recognizer that compares image distances
 class Dist(BaseRecognizer):
 	
 	def __init__(self, data=None):

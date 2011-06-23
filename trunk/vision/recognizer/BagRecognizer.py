@@ -3,12 +3,10 @@ import cv
 import sys
 import numpy
 
-#from scikits.learn import svm
-import svmutil as svm
-
 from ..util import Image
 from BaseRecognizer import *
 
+## Bag recognizer collects all face recognizers into one. Handingling opening of face database folder and managing the recognition results.
 class BagRecognizer(BaseRecognizer):
 	
 	def __init__(self, directory, classifiers, size):
@@ -66,52 +64,4 @@ class BagRecognizer(BaseRecognizer):
 					self.dist[i,j] = numpy.linalg.norm(a-b)
 		return self.dist
 		
-		
-class BagRecognizerFDA(BagRecognizer):
 	
-	def __init__(self, directory, classifiers, size):
-		BagRecognizer.__init__(self, directory, classifiers, size)
-		
-		training_data = []
-		training_labels = []
-		for (i,c) in enumerate(self.classifiers):
-			for j in range(0, len(c.X)):
-				training_data.append(c.X[j])
-				training_labels.append(i)
-		
-
-		training_data = numpy.vstack(training_data)
-		training_labels = numpy.hstack(training_labels)
-		
-		self.svm = []
-		for i in range(0, len(self.classifiers)):
-			#s = svm.SVC(kernel='rbf', probability=True)
-
-			
-			a = numpy.where(training_labels==i)[0]
-			b = numpy.where(training_labels!=i)[0]			
-			l = training_labels.copy()
-			l[a] = 1.0
-			l[b] = 0.0
-
-			problem = svm.svm_problem(l.tolist(), training_data.tolist())
-			
-			print '--- Fitting SVM ', i
-			s = svm.svm_train(problem, '-s 1 -t 2 -b 1')
-		
-			self.svm.append(s)
-		
-			
-	def query(self, image):
-		test = self.classifiers[0].compute(image).tolist()
-		test = numpy.matrix([test])
-
-		res = []
-		for i in range(0, len(self.classifiers)):
-			y = test[0,:].tolist()
-			x = range(len(y))
-			s = svm.svm_predict(x, y, self.svm[i])
-			print s
-			res.append(s[2][0][0])
-
-		return res

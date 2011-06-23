@@ -11,6 +11,7 @@ from vision.detector import *
 from vision.tracker import *
 from vision.recognizer.LBPRecognizer import *
 from vision.recognizer.BagRecognizer import *
+from vision.recognizer.BagRecognizerSVM import *
 from vision.recognizer.DistRecognizer import *
 from vision.ui.CVInterface import *
 from vision.ai.ip import *
@@ -43,6 +44,7 @@ class VRoster:
 		self.tracker = TrivialTracker(config)
 		self.window = CVWindow(config.UIName, config.UISaveTo)
 
+		# Determine minimization algorithm to be used
 		if config.MinProblem == 'IP':
 			self.ai = IP(constraints=config.MinProblemConstraints)
 		elif config.MinProblem == 'Gap2':
@@ -56,7 +58,7 @@ class VRoster:
 		self.recognizers = []
 		for i in range(0, config.PhotoBag):
 			self.recognizers.append(LBPRecognizer(cversion=True))
-		self.recognizers = BagRecognizerFDA(config.PhotoPath, self.recognizers, config.BoundingBox)
+		self.recognizers = BagRecognizerSVM(config.PhotoPath, self.recognizers, config.BoundingBox)
 
 		self.track = []
 		self.prev = []
@@ -72,62 +74,86 @@ class VRoster:
 		observations = self.detector.detect(frame)
 		objects = self.tracker.update(observations)
 		objectImages = Image.extractSubImages(frameGray, objects, self.config.BoundingBox)
-
+		
+		detectedCount = len(objectImages)
+		
 		# Generate recognition matrix
 		recognized = []
 		for image in objectImages:
 			recognized.append(self.recognizers.query(image))
    
 		# Attempt to find best matching
-		w = numpy.abs(numpy.matrix(recognized))
-		
-		print w
-		
-		prior = numpy.zeros(w.shape)
-		priorHistory = numpy.zeros(w.shape)
+		s = numpy.abs(numpy.matrix(recognized))
 
-		# Calculate total weights 
-		if len(self.prev)>0 and self.priorSize>0:
-			if self.dist == None:
-				self.dist = self.recognizers.distance()
-			
-			for p in range(0, min(len(self.prev), self.priorSize)):
-				pid = -1*p
-				
-				for o in range(0, w.shape[0]):
-					if o < len(self.prev[pid][0]):
-						for r in range(0, w.shape[1]):
-							if self.prev[pid][0][o] != r:
-								priorHistory[o, r] += 1
-						try:	
-							prior[o, :] += self.dist[self.prev[pid][0][o], :]
-						except Exception:
-							pass
-							#print 'Prior exception'
-							
-			for o in range(0, w.shape[0]):
-				w[o, :] += priorHistory[o, :]/max(numpy.sum(priorHistory[o, :]),1.0)*prior[o,:]*self.alpha
-
-		a = numpy.zeros((w.shape[0], 1)) + numpy.average(w,1)*self.beta - numpy.std(w,1)*.5
-		w = numpy.hstack((w,a))
+		# Temporal variables
+		b = numpy.eye(detectedCount)
+		da = numpy.zeros((detectedCount, detectedCount))
+		ds = numpy.zeros(s.shape)
 	
-		predicted = self.ai.predict(w)
-		#print w, predicted
-		self.prev.append([predicted, objectImages])
+	 	# Calculate temporal variables
+		if len(self.prev)>0:
+			for t in range(0, len(self.prev)):
+				for i in range(0, detectedCount):
+					for j in range(0, len(self.prev[0][1])):					
+						da[i,j] += numpy.sum(numpy.power(objectImages[i]-self.prev[t][1][j],2))**.5
+			da /= (len(self.prev)*1.0)
+		
+		
+			for i in range(0, ds.shape[0]):
+				for j in range(0, ds.shape[1]):
+					tmp = []
+					for k in range(0, len(self.prev[0][0])):
+						tmp2 = 0
+						for t in range(0, len(self.prev)):
+							tmp2 += (1 - 2*int(self.prev[t][0][k]==j))
+						tmp.append(tmp2/(len(self.prev)*1.0)*b[i,k]*da[i,k])
+					ds[i,j] = numpy.sum(tmp)
+		
+		
+		# Create cost matrix
+		s = s + self.beta*ds
+		
+		# Unknown column is added
+		a = numpy.zeros((detectedCount, 1)) + numpy.average(s,1)*self.alpha - numpy.std(s,1)*.5
+		s = numpy.hstack((s,a))
+		
+		# Solve the pairing problem (assuming B is correct)
+		c = self.ai.predict(s, unknown=True)
+		
+		# Calculate new B
+		if len(self.prev)>0:
+			w = numpy.zeros((detectedCount, detectedCount))
+			for i in range(0, detectedCount):
+				for j in range(0, len(self.prev[0][0])):
+					w[i,j] = da[i,j] * int(c[i]!=self.prev[0][0][j])
+		
+			# Solve the pairing problem for B (assuming C is correct)
+			newB = self.ai.predict(w, unknown=False)
+		
+			# Update B matrix with results
+			b = numpy.eye(detectedCount)
+			for i in range(0, len(newB)):
+				b[i, newB[i]] = 1
+
+		# Update prior data
+		self.prev.append([c, objectImages])
 		if len(self.prev)>self.priorSize:
 			self.prev.pop()
 
+		# Save tracking information for display and output
 		currentTrack = []
 		if len(objects)>0:
-			for (i,l) in enumerate(predicted):
+			for (i,l) in enumerate(c):
 				tmp = [objects[i][0]+objects[i][2]/2.0, objects[i][1]+objects[i][3]/2.0, l]
 				currentTrack.append(tmp)
-		#print >>self.output, currentTrack
+				
+				self.output.write('%d %d %d; '%(tmp[0], tmp[1], tmp[2]))
+		self.output.write('\n')
 		
-		return (objects, predicted)
+		return (objects, c)
 
 
-	
+	# Main code that cycles through frames performing the recognition and tracking
 	def run(self, config=None):
 		self.setup(config)
 
@@ -141,8 +167,10 @@ class VRoster:
 				print 'Movie ended!'
 				break
 			
+			# Track/Recognize
 			objects, predicted = self.update(frame)
  		
+			# If UI is enabled, display results
 			if self.ui == True:
 				canvas = CVCanvas(frame)
 				
@@ -158,8 +186,9 @@ class VRoster:
 		
 if __name__ == '__main__':
 	
-	v = VRoster(alpha=1.75, beta=1, priorSize=5, skipFrames=3, frames=4050, ui=True)
-	track = v.run(config.LargeClassroom())		
-
+	v = VRoster(alpha=1, beta=1, priorSize=5, skipFrames=2, frames=4050, ui=True)
+	
+	track = v.run(config.VideoRoster())		
+	#track = v.run(config.LargeClassroom())		
 	
  
