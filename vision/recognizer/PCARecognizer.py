@@ -3,6 +3,7 @@ import mdp.nodes as mdp
 
 from BaseRecognizer import *
 
+## Attempt to use PCA as a recognizer... did not work
 class PCA(BaseRecognizer):
 	
 	def __init__(self, data):

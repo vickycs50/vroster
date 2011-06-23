@@ -6,6 +6,7 @@ import mdp
 
 from BaseRecognizer import *
 
+## LBP based recognizer (worked best)
 class LBPRecognizer(BaseRecognizer):
 	cache = dict()
 	
@@ -89,22 +90,12 @@ class LBPRecognizer(BaseRecognizer):
 					
 					num = int(num, 2)
 					res[cy, cx, num] += 1 
-		#numpy.set_printoptions(threshold=numpy.nan)
-		#print res.ravel()
-		# for y in range(0, res.shape[0]):
-		# 		for x in range(0, res.shape[1]):
-		# 			s = numpy.sum(res[y,x,:])
-		# 			res[y,x,:] /= s
-				
+
 		return res.ravel()	
 		
 	def update(self, image):
 		self.X.append(self.__compute(image))
 		
-		#self.pca = mdp.nodes.PCANode(output_dim=.9)
-		#x = numpy.cast[float](numpy.matrix(self.X))
-		#self.pca.train(x)
-
 		
 	def query(self, image):
 		if len(self.X)==0:
@@ -118,7 +109,4 @@ class LBPRecognizer(BaseRecognizer):
 			res.append(numpy.linalg.norm(self.X[i]-img))
 			
 		return numpy.average(res)
-		#distance.braycurtis(self.X, img)/len(self.X)*1000
 
-		#y = self.pca(img)
-		#return numpy.power(y,2).sum()*-1

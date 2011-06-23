@@ -3,6 +3,7 @@ import cv
 from BaseDetector import *
 
 
+## Interface to the OpenCV haar face detection routine
 class HaarDetector(BaseDetector):
 	"""OpenCV Haar detector implementation"""
 	
@@ -24,6 +25,7 @@ class HaarDetector(BaseDetector):
 			
 		return res
 		
+## FastHaar performs haar face detection on only a section of the image every time detect() is called		
 class FastHaarDetector(HaarDetector):
 	
 	def __init__(self, cascade, size, mod=[2,2]):
@@ -52,6 +54,8 @@ class FastHaarDetector(HaarDetector):
 			
 		return res
 		
+		
+## A faster Haar face detector which only performs haar on regions that are thought to be skin color, reducing search space
 class SkinHaarDetector(HaarDetector):
 	
 	def __init__(self, cascade, size, skin):

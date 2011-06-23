@@ -8,7 +8,7 @@ class IP:
 	def __init__(self, constraints=True):
 		self.constraints = constraints
 		
-	def predict(self, c):
+	def predict(self, c, unknown):
 		if c.size < 2:
 			return []
 		
@@ -36,7 +36,11 @@ class IP:
 
 		if self.constraints == True:
 			# Use recognizer up to once
-			for i in range(0, recognizers-1):
+			if unknown==True:
+				lim = recognizers-1
+			else:
+				lim = recognizers
+			for i in range(0, recognizers):
 				tmp = numpy.zeros((detected, recognizers))
 				tmp[:, i] = 1
 				tmp = tmp.reshape((1, size))[0]
@@ -56,7 +60,7 @@ class IP:
 		predicted = []
 		for i in range(0, labels.shape[0]):
 			l = numpy.argmax(labels[i,:])
-			if l==recognizers-1:
+			if l==recognizers-1 and unknown==True:
 				l = -1
 			predicted.append(l)
 			

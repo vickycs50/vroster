@@ -4,6 +4,7 @@ import time
 from BaseDetector import *
 from HaarDetector import *
 
+## Attempt to run the face detector as a seperate thread to increase efficiency
 class ThreadedDetector:	
 	def __init__(self, cascade, size):
 		self.past = []

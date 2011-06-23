@@ -2,6 +2,7 @@ import numpy
 
 from BaseTracker import *
 
+## Keeps track of objects between frames because the Haar face detector is not stable enough
 class TrivialTracker(BaseTracker):
 	
 	def __init__(self, config):

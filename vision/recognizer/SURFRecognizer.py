@@ -3,7 +3,7 @@ import cv
 
 from BaseRecognizer import *
 
-
+## Attempt to use SURF descriptor as a recognizer... did not work
 class SURFRecognizer(BaseRecognizer):
 	
 	def __init__(self, data):
